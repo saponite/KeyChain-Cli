@@ -24,7 +24,7 @@
 
 ### Склонируйте репозиторий.
 ```bash
-git clone github.com/bla-bla-bla/KeyChain-CLI
+git clone https://github.com/saponite/KeyChain-Cli.git
 cd KeyChain-CLI
 ```
 
