@@ -18,10 +18,13 @@ func main() {
 		}
 	}()
 
-	rootCmd := cmd.RootCmd()
-	keys.Init(rootCmd)
+	app := &cmd.App{Logger: logFile}
+
+	rootCmd := cmd.RootCmd(app)
+	keys.Init(rootCmd, app)
 	signatures.Init(rootCmd)
+
 	if err = rootCmd.Execute(); err != nil {
-		logFile.Error("ошибка обработки аргументов", err)
+		logFile.Error("ошибка выполнения команды: ", err)
 	}
 }
