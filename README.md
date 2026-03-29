@@ -1,3 +1,4 @@
+![Release](https://github.com/saponite/KeyChain-Cli/actions/workflows/goreleaser.yml/badge.svg)
 # KeyChain-Cli
 
 Данный проект содержит в себе исходные файлы утилиту CLI для шифрования данных,
@@ -50,6 +51,21 @@ go build main.go
 Иной вариант запуска программы без предварительной компиляции.
 ```bash
 go run . keys generate --time 1 --memory 64 --threads 4 --keyLen 32 --private-key-path priv_key.pem --public-key-path pub_key.pem --private-key-size 2048 --salt-size 16
+```
+
+## Установка из релиза.
+
+Скачайте бинарный файл для Вашей платформы со страницы [Releases](https://github.com/saponite/KeyChain-Cli/releases).
+
+### Linux / macOS:
+```bash
+chmod +x keychain-cli
+./keychain-cli keys generate
+```
+
+### Windows:
+```
+keychain-cli.exe keys generate
 ```
 
 ### Значения ключей.
