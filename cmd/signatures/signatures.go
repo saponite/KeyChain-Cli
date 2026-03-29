@@ -14,5 +14,6 @@ func Init(rootCmd *cobra.Command, app *cmd.App) {
 	}
 
 	signaturesCmd.AddCommand(newSignCmd(app))
+	signaturesCmd.AddCommand(newVerifyCmd(app))
 	rootCmd.AddCommand(signaturesCmd)
 }

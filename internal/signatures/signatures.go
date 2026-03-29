@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -57,6 +58,30 @@ func SignFile(privateKeyPath, filePath, signerID string) error {
 	}
 
 	return nil
+}
+
+func VerifyFile(pubKeyPath, filePath string) ([]byte, error) {
+	publicKey, err := loadPublicKey(pubKeyPath)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка загрузки публичного ключа: %w", err)
+	}
+
+	digest, err := hashFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка хеширования файла: %w", err)
+	}
+
+	signatureRaw, err := readSignature(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка чтения подписи: %w", err)
+	}
+
+	signerInfo, err := verifyFileSignature(publicKey, digest, signatureRaw)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка проверки подписи: %w", err)
+	}
+
+	return signerInfo, nil
 }
 
 func loadPrivateKey(pkPath string) (*rsa.PrivateKey, error) {
@@ -163,4 +188,58 @@ func writeSignatureToFile(signaturePackage []byte, initialFilePath string) error
 	}
 
 	return nil
+}
+
+func readSignature(initialFilePath string) ([]byte, error) {
+	dir := filepath.Dir(initialFilePath)
+	baseName := filepath.Base(initialFilePath)
+
+	sigFilePath := filepath.Join(dir, baseName+".sig")
+
+	return os.ReadFile(sigFilePath)
+}
+
+func loadPublicKey(path string) (*rsa.PublicKey, error) {
+	block, err := internalpem.DecodeFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка парсинга публичного ключа: %w", err)
+	}
+
+	rsaPub, ok := pub.(*rsa.PublicKey)
+	if !ok {
+		return nil, errors.New("файл не содержит RSA публичный ключ")
+	}
+
+	return rsaPub, nil
+}
+
+func verifyFileSignature(publicKey *rsa.PublicKey, digest []byte, signatureRaw []byte) ([]byte, error) {
+	buf := bytes.NewReader(signatureRaw)
+
+	var nameLength uint32
+	if err := binary.Read(buf, binary.BigEndian, &nameLength); err != nil {
+		return nil, fmt.Errorf("failed to read signer info length: %v", err)
+	}
+
+	signerInfo := make([]byte, nameLength)
+	if _, err := buf.Read(signerInfo); err != nil {
+		return nil, fmt.Errorf("failed to read signer info: %v", err)
+	}
+
+	signature := make([]byte, buf.Len())
+	if _, err := buf.Read(signature); err != nil {
+		return nil, fmt.Errorf("failed to read signature: %v", err)
+	}
+
+	opts := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
+	if err := rsa.VerifyPSS(publicKey, crypto.SHA3_256, digest, signature, opts); err != nil {
+		return nil, fmt.Errorf("signature verification failed: %v", err)
+	}
+
+	return signerInfo, nil
 }
