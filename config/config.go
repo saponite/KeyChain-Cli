@@ -27,6 +27,7 @@ func LoadYamlConfig(log logger.Logger) (*viper.Viper, error) {
 			log.Warn("конфиг не найден, используются параметры CLI или дефолтные значения")
 			return localViper, nil
 		}
+
 		return nil, fmt.Errorf("ошибка чтения конфига: %w", err)
 	}
 
