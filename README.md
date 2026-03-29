@@ -11,13 +11,16 @@
 ## Особенности:
 
 - генерация пары RSA-ключей (закрытый + открытый);
-- зашифрованный закрытый ключ с использованием парольной фразы;
-- реализован собственный логгер;
-- настроенная CLI через [Cobra](https://github.com/spf13/cobra);
-- логирование через DI.
+- закрытый ключ шифруется AES-GCM с ключом, полученным через Argon2id;
+- соль и nonce сохраняются в заголовках PEM-файла;
+- настраиваемые параметры Argon2 (time, memory, threads, keyLen) через CLI или yaml. [Подробнее](https://pkg.go.dev/golang.org/x/crypto@v0.49.0/argon2) о параметрах;
+- приоритет параметров: флаги CLI, config.yaml, значения по умолчанию;
+- реализован собственный логгер с раздельным выводом в терминал и app.log файл;
+- CLI через [Cobra](https://github.com/spf13/cobra), конфигурация через [Viper](https://github.com/spf13/viper);
+- логгер передаётся через DI.
 
 ## Требования:
-- Go 1.21+;
+- [Go](https://go.dev/doc/install) 1.21+;
 - Linux / macOS / Windows. Протестировано на Linux, macOS.
 
 ## Установка.
@@ -35,18 +38,30 @@ go build main.go
 
 ### Запустите полученный бинарный файл.
 ```bash
-./main keys generate --priv-out priv_key.pem --pub-out pub_key.pem --priv-size 2048 --salt-size 16
+./main keys generate --time 1 --memory 64 --threads 4 --keyLen 32 --private-key-path priv_key.pem --public-key-path pub_key.pem --private-key-size 2048 --salt-size 16
 ```
 или
 ```bash
 ./main keys generate 
 ```
 
+Иной вариант запуска программы без предварительной компиляции.
+```bash
+go run . keys generate --time 1 --memory 64 --threads 4 --keyLen 32 --private-key-path priv_key.pem --public-key-path pub_key.pem --private-key-size 2048 --salt-size 16
+```
+
 ### Значения ключей.
-- --priv-out. Значение по умолчанию - priv_key.pem. В качестве аргумента к ключу передается путь для закрытого ключа.
-- --pub-out. Значение по умолчанию - pub_key.pem. В качестве аргумента к ключу передается путь для открытого ключа.
-- --priv-size. Значение по умолчанию - 2048. В качестве аргумента к ключу передается размер закрытого ключа в битах.
-- --salt-size. Значение по умолчанию - 16. В качестве аргумента к ключу передается размер соли в байтах.
+```
+-h, --help                      help for generate
+    --keyLen uint32             Длина ключа (в байтах). (default 32)
+    --memory uint32             Количество памяти для генерации ключа (в мегабайтах). (default 65536)
+    --private-key-path string   Путь для сохранения закрытого ключа. (default "priv_key.pem")
+    --private-key-size int      Размер закрытого ключа в битах. (default 2048)
+    --public-key-path string    Путь для сохранения открытого ключа. (default "pub_key.pem")
+    --salt-size int             Размер соли, используемый при выводе ключа, в байтах. (default 16)
+    --threads uint8             Количество потоков, которые нужно задействовать для генерации ключа. (default 4)
+    --time uint32               Время генерации ключа. (default 1)
+```
 
 ### Лицензия.
 
