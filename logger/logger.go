@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"io"
 	"log"
 	"os"
 )
@@ -10,11 +9,13 @@ type Logger interface {
 	Info(v ...any)
 	Warn(v ...any)
 	Error(v ...any)
+	Print(v ...any)
 }
 
 type FileLogger struct {
-	file   *os.File
-	logger *log.Logger
+	file       *os.File
+	fileLogger *log.Logger
+	termLogger *log.Logger
 }
 
 func New(path string) (*FileLogger, error) {
@@ -23,11 +24,10 @@ func New(path string) (*FileLogger, error) {
 		return nil, err
 	}
 
-	mw := io.MultiWriter(os.Stdout, f)
-
 	return &FileLogger{
-		file:   f,
-		logger: log.New(mw, "", log.Ldate|log.Ltime),
+		file:       f,
+		fileLogger: log.New(f, "", log.Ldate|log.Ltime),
+		termLogger: log.New(os.Stdout, "", 0),
 	}, nil
 }
 
@@ -39,13 +39,17 @@ func (l *FileLogger) Close() error {
 }
 
 func (l *FileLogger) Info(v ...any) {
-	l.logger.Println(append([]any{"INFO:"}, v...)...)
+	l.fileLogger.Println(append([]any{"INFO:"}, v...)...)
 }
 
 func (l *FileLogger) Warn(v ...any) {
-	l.logger.Println(append([]any{"WARN:"}, v...)...)
+	l.fileLogger.Println(append([]any{"WARN:"}, v...)...)
 }
 
 func (l *FileLogger) Error(v ...any) {
-	l.logger.Println(append([]any{"ERROR:"}, v...)...)
+	l.fileLogger.Println(append([]any{"ERROR:"}, v...)...)
+}
+
+func (l *FileLogger) Print(v ...any) {
+	l.termLogger.Println(v...)
 }
