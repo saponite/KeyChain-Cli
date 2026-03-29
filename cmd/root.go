@@ -3,6 +3,7 @@ package cmd
 import (
 	"KeyChain-CLI/config"
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,6 +34,15 @@ func RootCmd(app *App) *cobra.Command {
 			app.Logger.Print("Документация сгенерирована в ./docs")
 
 			return nil
+		},
+	})
+
+	root.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Выведите номер версии KeyChain-CLI.",
+		Long:  `У всего программного обеспечения есть версии. Это версия KeyChain-CLI.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("brave_signer version:", version)
 		},
 	})
 
