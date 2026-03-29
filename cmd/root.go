@@ -2,15 +2,10 @@ package cmd
 
 import (
 	"KeyChain-CLI/config"
-	"KeyChain-CLI/logger"
 	"context"
 
 	"github.com/spf13/cobra"
 )
-
-type App struct {
-	Logger logger.Logger
-}
 
 func RootCmd(app *App) *cobra.Command {
 	root := &cobra.Command{
