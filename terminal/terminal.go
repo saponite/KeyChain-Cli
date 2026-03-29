@@ -1,8 +1,9 @@
-package utils
+package terminal
 
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/term"
 )
@@ -30,4 +31,25 @@ func GetPassphrase() (pass []byte, err error) {
 	fmt.Println()
 
 	return pass, nil
+}
+
+func ProcessFilePath(path string) (string, error) {
+	absolutePath, err := filepath.Abs(path)
+	if err != nil {
+		return "", fmt.Errorf("ошибка конвертации в абсолютный путь: %q", err)
+	}
+
+	fileInfo, err := os.Stat(absolutePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", fmt.Errorf("путь '%s' не существует", path)
+		}
+		return "", fmt.Errorf("информация об ошибке: %v", err)
+	}
+
+	if !fileInfo.Mode().IsRegular() {
+		return "", fmt.Errorf("путь '%s' не указывает на файл", path)
+	}
+
+	return absolutePath, nil
 }

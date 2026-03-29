@@ -22,7 +22,7 @@ func main() {
 
 	rootCmd := cmd.RootCmd(app)
 	keys.Init(rootCmd, app)
-	signatures.Init(rootCmd)
+	signatures.Init(rootCmd, app)
 
 	if err = rootCmd.Execute(); err != nil {
 		logFile.Error("ошибка выполнения команды: ", err)
